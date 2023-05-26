@@ -588,7 +588,7 @@ class Nse:
         config = self.__urls
 
         url = config['host'] + (config['path']['option_chain_index'] if 'NIFTY' in symbol else config['path'][
-            'option_chain_equities']).format(symbol=symbol)
+            'option_cahin_equities']).format(symbol=symbol)
         data = self.__get_resp(url).json()
 
         self.expiry_list = sorted([dt.datetime.strptime(d, '%d-%b-%Y').date() for d in data['records']['expiryDates']])

@@ -13,6 +13,7 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 from glob import glob
+
 logger = logging.getLogger(__name__)
 
 
@@ -89,11 +90,11 @@ class Nse:
     @staticmethod
     def __read_object(filename, obj_format):
         if obj_format == Format.pkl:
-            with open(filename, 'rb')as f:
+            with open(filename, 'rb') as f:
                 obj = pickle.load(f)
             return obj
         elif obj_format == Format.csv:
-            with open(filename, 'r')as f:
+            with open(filename, 'r') as f:
                 obj = f.read()
             return obj
         else:
@@ -102,10 +103,10 @@ class Nse:
     @staticmethod
     def __save_object(obj, filename, obj_format):
         if obj_format == Format.pkl:
-            with open(filename, 'wb')as f:
+            with open(filename, 'wb') as f:
                 pickle.dump(obj, f)
         elif obj_format == Format.csv:
-            with open(filename, 'w')as f:
+            with open(filename, 'w') as f:
                 f.write(obj)
         logger.debug(f'saved {filename}')
 
@@ -157,10 +158,10 @@ class Nse:
                                                              'Accept-Encoding': 'gzip, deflate, br',
                                                              'Accept-Language': 'en-US;q=0.5,en;q=0.3',
                                                              'DNT': '1'})
-            with open(temp_file, 'wb')as f:
+            with open(temp_file, 'wb') as f:
                 pickle.dump(session, f)
         else:
-            with open(temp_file, 'rb')as f:
+            with open(temp_file, 'rb') as f:
                 session = pickle.load(f)
         return session
 
@@ -171,7 +172,7 @@ class Nse:
                    'Accept-Encoding': 'gzip, deflate, br',
                    'Accept-Language': 'en-US;q=0.5,en;q=0.3',
                    'DNT': '1',
-                   'referer':'https://www.nseindia.com'}
+                   'referer': 'https://www.nseindia.com'}
         # use global timeout if not specified
         timeout = self.timeout if timeout == 0 else timeout
 
@@ -184,7 +185,7 @@ class Nse:
             logger.error(e)
 
         else:
-            with open(f"{self.dir['temp']}session", 'wb')as f:
+            with open(f"{self.dir['temp']}session", 'wb') as f:
                 pickle.dump(session, f)
             return response
 
@@ -314,9 +315,9 @@ class Nse:
                                                 self.symbols[IndexSymbol.All.name] + [idx.value for idx in IndexSymbol])
 
                 url = config['host'] + \
-                    config['path']['quote_eq'].format(symbol=symbol)
+                      config['path']['quote_eq'].format(symbol=symbol)
                 url1 = config['host'] + \
-                    config['path']['trade_info'].format(symbol=symbol)
+                       config['path']['trade_info'].format(symbol=symbol)
                 data = self.__get_resp(url).json()
                 data.update(self.__get_resp(url1).json())
                 quote = data['priceInfo']
@@ -335,7 +336,7 @@ class Nse:
                                                 self.symbols[IndexSymbol.FnO.name] + ['NIFTY', 'BANKNIFTY'])
 
                 url = config['host'] + \
-                    config['path']['quote_derivative'].format(symbol=symbol)
+                      config['path']['quote_derivative'].format(symbol=symbol)
 
                 data = self.__get_resp(url).json()
                 quote['timestamp'] = dt.datetime.strptime(
@@ -368,7 +369,7 @@ class Nse:
 
             elif segment == 'OPT':
                 url = config['host'] + \
-                    config['path']['quote_derivative'].format(symbol=symbol)
+                      config['path']['quote_derivative'].format(symbol=symbol)
 
                 data = self.__get_resp(url).json()
 
@@ -379,7 +380,7 @@ class Nse:
                 data = [
                     i for i in data['stocks']
                     if segment.lower() in i['metadata']['instrumentType'].lower()
-                    and i['metadata']['optionType'] == optionType
+                       and i['metadata']['optionType'] == optionType
                 ]
 
                 # get expiry list
@@ -406,7 +407,7 @@ class Nse:
 
                 # filter data for strike price
                 data = [i for i in data if i['metadata']
-                        ['strikePrice'] == strike]
+                ['strikePrice'] == strike]
 
                 quote.update(data[0]['marketDeptOrderBook']['tradeInfo'])
                 quote.update(data[0]['marketDeptOrderBook']['otherInfo'])
@@ -562,7 +563,7 @@ class Nse:
 
         return pre_open_data
 
-    def option_chain(self, symbol: str, expiry: dt.date = None) -> pd.DataFrame:
+    def option_chain(self, symbol: str, expiry: dt.date = None) -> (str, pd.DataFrame):
         """
         downloads the latest available option chain from nse website
         if no expiry is None current contract option chain 
@@ -587,20 +588,17 @@ class Nse:
         config = self.__urls
 
         url = config['host'] + (config['path']['option_chain_index'] if 'NIFTY' in symbol else config['path'][
-            'option_cahin_equities']).format(symbol=symbol)
+            'option_chain_equities']).format(symbol=symbol)
         data = self.__get_resp(url).json()
 
-        self.expiry_list = sorted([dt.datetime.strptime(
-            d, '%d-%b-%Y').date() for d in data['records']['expiryDates']])
-        expiry = expiry or self.expiry_list[0]
+        self.expiry_list = sorted([dt.datetime.strptime(d, '%d-%b-%Y').date() for d in data['records']['expiryDates']])
         option_chain = pd.json_normalize(data['records']['data'])
-        option_chain.expiryDate = option_chain.expiryDate.apply(
-            lambda x: dt.datetime.strptime(x, '%d-%b-%Y').date())
-
-        option_chain = option_chain[option_chain.expiryDate == expiry]
+        option_chain.expiryDate = option_chain.expiryDate.apply(lambda x: dt.datetime.strptime(x, '%d-%b-%Y').date())
+        if expiry:
+            option_chain = option_chain[option_chain.expiryDate == expiry]
         self.strike_list = sorted(list(option_chain.strikePrice))
-
-        return option_chain
+        timestamp = data['records']['timestamp']
+        return timestamp, option_chain
 
     def fii_dii(self) -> dict:
         """
@@ -838,7 +836,7 @@ class Nse:
         index = 'SECURITIES%20IN%20F%26O' if index == 'FNO' else index
         config = self.__urls
         url = config['host'] + \
-            config['path']['gainer_loser'].format(index=index)
+              config['path']['gainer_loser'].format(index=index)
         data = self.__get_resp(url).json()
 
         # if requested by adv decl
@@ -890,7 +888,7 @@ class Nse:
                     for i in data if i['identifier'] != index.value]
 
         data.sort()
-        with open(self.dir['symbol_list'] + index.name + '.pkl', 'wb')as f:
+        with open(self.dir['symbol_list'] + index.name + '.pkl', 'wb') as f:
             pickle.dump(data, f)
             logger.info(f'symbol list saved for {index}')
         return data
@@ -1010,11 +1008,11 @@ class Nse:
         y = 1
         for unit in ['B', 'KB', 'MB', 'GB']:
 
-            if size_bytes/y < 1024 or unit == 'GB':
-                size = round(size_bytes/y, 2), unit
+            if size_bytes / y < 1024 or unit == 'GB':
+                size = round(size_bytes / y, 2), unit
                 break
             else:
-                y = y*1024
+                y = y * 1024
 
         return size
 

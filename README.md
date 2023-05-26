@@ -1,28 +1,12 @@
 # pynse
-
 Library to extract publicly available real-time and historical data from NSE website.
-
-If you found the content useful and want to support my work, you can buy me a coffee! 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/StreamAlpha)
-
-
-Bhavcopy & Option Chain Analysis
-
-[![Watch the video](https://img.youtube.com/vi/h1ZT7_zdUls/hqdefault.jpg)](https://youtu.be/h1ZT7_zdUls)
-
- pyNSE Tytorial
-
-[![Watch the video](https://img.youtube.com/vi/JXe7ymh5KTI/hqdefault.jpg)](https://youtu.be/JXe7ymh5KTI)
-
-
-
 
 ## Installation
 
 This module is installed via pip:
 
 ```
-pip install --upgrade git+https://github.com/StreamAlpha/pynse.git
+pip install --upgrade git+https://github.com/the13620/pynse.git
 ```
 
 ### Prerequisites
